@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.example.android.datafrominternet.utilities.GithubQueryTask;
 import com.example.android.datafrominternet.utilities.NetworkUtils;
 
 import java.io.IOException;
@@ -56,13 +57,15 @@ public class MainActivity extends AppCompatActivity {
         String githubQuery = mSearchBoxEditText.getText().toString();
         URL githubSearchUrl = NetworkUtils.buildUrl(githubQuery);
         mUrlDisplayTextView.setText(githubSearchUrl.toString());
-        String githubSearchResults = null;
-        try {
-            githubSearchResults = NetworkUtils.getResponseFromHttpUrl(githubSearchUrl);
-            mSearchResultsTextView.setText(githubSearchResults);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        String githubSearchResults = null;
+//        try {
+//            githubSearchResults = NetworkUtils.getResponseFromHttpUrl(githubSearchUrl);
+//            mSearchResultsTextView.setText(githubSearchResults);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+        mSearchResultsTextView.setText("");
+        new GithubQueryTask(this).execute(githubSearchUrl);
         // TODO (4) Create a new GithubQueryTask and call its execute method, passing in the url to query
     }
 
@@ -84,5 +87,10 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void UpdateResultText(String resultText)
+    {
+        mSearchResultsTextView.setText(resultText);
     }
 }

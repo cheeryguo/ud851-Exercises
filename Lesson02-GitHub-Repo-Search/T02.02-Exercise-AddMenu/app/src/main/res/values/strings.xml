@@ -14,6 +14,7 @@
   limitations under the License.
   -->
 <resources>
-    <string name="app_name">Github Query</string>
+    <string name="app_name">Github</string>
+    <string name="search">Search</string>
     <!--TODO (1) Add a string resource called search with the title "Search"-->
 </resources>
