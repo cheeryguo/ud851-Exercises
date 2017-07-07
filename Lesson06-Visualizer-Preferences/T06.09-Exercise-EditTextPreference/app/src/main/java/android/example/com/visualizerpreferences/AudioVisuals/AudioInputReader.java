@@ -33,7 +33,7 @@ public class AudioInputReader {
     private final Context mContext;
     private MediaPlayer mPlayer;
     private Visualizer mVisualizer;
-
+    private static final String TAG = AudioInputReader.class.getSimpleName();
 
     public AudioInputReader(VisualizerView visualizerView, Context context) {
         this.mVisualizerView = visualizerView;

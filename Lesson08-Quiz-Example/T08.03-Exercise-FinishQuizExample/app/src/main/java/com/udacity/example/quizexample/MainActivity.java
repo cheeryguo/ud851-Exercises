@@ -17,12 +17,20 @@
 package com.udacity.example.quizexample;
 
 import android.content.ContentResolver;
+import android.content.Context;
+import android.content.CursorLoader;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CursorAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.udacity.example.droidtermsprovider.DroidTermsExampleContract;
 
@@ -30,13 +38,14 @@ import com.udacity.example.droidtermsprovider.DroidTermsExampleContract;
  * Gets the data from the ContentProvider and shows a series of flash cards.
  */
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     // The data from the DroidTermsExample content provider
     private Cursor mData;
 
     // The current state of the app
     private int mCurrentState;
+    private TextView mWordView, mDefinitionView;
 
     private Button mButton;
 
@@ -47,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     // This state is when the word definition is shown and clicking the button will therefore
     // advance the app to the next word
     private final int STATE_SHOWN = 1;
+   // private final int wordIndex = DroidTermsExampleContract.;
 
 
     @Override
@@ -57,9 +67,11 @@ public class MainActivity extends AppCompatActivity {
         // Get the views
         // TODO (1) You'll probably want more than just the Button
         mButton = (Button) findViewById(R.id.button_next);
-
+        mWordView = (TextView) findViewById(R.id.text_view_word);
+        mDefinitionView = (TextView) findViewById(R.id.text_view_definition);
         //Run the database operation to get the cursor off of the main thread
-        new WordFetchTask().execute();
+        //new WordFetchTask().execute();
+        getSupportLoaderManager().initLoader(0,null,this);
 
     }
 
@@ -91,7 +103,19 @@ public class MainActivity extends AppCompatActivity {
         // Note that you shouldn't try to do this if the cursor hasn't been set yet.
         // If you reach the end of the list of words, you should start at the beginning again.
         mCurrentState = STATE_HIDDEN;
-
+        if(mData.moveToNext()) {
+            String word = mData.getString(DroidTermsExampleContract.COLUMN_INDEX_WORD);
+            mWordView.setText(word);
+            mDefinitionView.setText("");
+        }
+        else
+        {
+            //Toast.makeText(this, "The Last word!", Toast.LENGTH_SHORT).show();
+            mData.moveToFirst();
+            String word = mData.getString(DroidTermsExampleContract.COLUMN_INDEX_WORD);
+            mWordView.setText(word);
+            mDefinitionView.setText("");
+        }
     }
 
     public void showDefinition() {
@@ -101,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
 
         // TODO (4) Show the definition
         mCurrentState = STATE_SHOWN;
+        String definition = mData.getString(DroidTermsExampleContract.COLUMN_INDEX_DEFINITION);
+        mDefinitionView.setText(definition);
 
     }
 
@@ -108,6 +134,94 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         // TODO (5) Remember to close your cursor!
+        mData.close();
+    }
+
+    /**
+     * Instantiate and return a new Loader for the given ID.
+     *
+     * @param id   The ID whose loader is to be created.
+     * @param args Any arguments supplied by the caller.
+     * @return Return a new Loader instance that is ready to start loading.
+     */
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<Cursor>(this) {
+            @Override
+            public Cursor loadInBackground() {
+                Cursor query = getContentResolver().query(DroidTermsExampleContract.CONTENT_URI, null, null, null, null);
+                return  query;
+                //return null;
+            }
+
+            @Override
+            protected void onStartLoading() {
+                super.onStartLoading();
+                forceLoad();
+            }
+        };
+    }
+
+    /**
+     * Called when a previously created loader has finished its load.  Note
+     * that normally an application is <em>not</em> allowed to commit fragment
+     * transactions while in this call, since it can happen after an
+     * activity's state is saved.  See {@link FragmentManager#beginTransaction()
+     * FragmentManager.openTransaction()} for further discussion on this.
+     * <p>
+     * <p>This function is guaranteed to be called prior to the release of
+     * the last data that was supplied for this Loader.  At this point
+     * you should remove all use of the old data (since it will be released
+     * soon), but should not do your own release of the data since its Loader
+     * owns it and will take care of that.  The Loader will take care of
+     * management of its data so you don't have to.  In particular:
+     * <p>
+     * <ul>
+     * <li> <p>The Loader will monitor for changes to the data, and report
+     * them to you through new calls here.  You should not monitor the
+     * data yourself.  For example, if the data is a {@link Cursor}
+     * and you place it in a {@link CursorAdapter}, use
+     * the {@link CursorAdapter#CursorAdapter(Context, * Cursor, int)} constructor <em>without</em> passing
+     * in either {@link CursorAdapter#FLAG_AUTO_REQUERY}
+     * or {@link CursorAdapter#FLAG_REGISTER_CONTENT_OBSERVER}
+     * (that is, use 0 for the flags argument).  This prevents the CursorAdapter
+     * from doing its own observing of the Cursor, which is not needed since
+     * when a change happens you will get a new Cursor throw another call
+     * here.
+     * <li> The Loader will release the data once it knows the application
+     * is no longer using it.  For example, if the data is
+     * a {@link Cursor} from a {@link CursorLoader},
+     * you should not call close() on it yourself.  If the Cursor is being placed in a
+     * {@link CursorAdapter}, you should use the
+     * {@link CursorAdapter#swapCursor(Cursor)}
+     * method so that the old Cursor is not closed.
+     * </ul>
+     *
+     * @param loader The Loader that has finished.
+     * @param data   The data generated by the Loader.
+     */
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mData = data;
+        if(mData.moveToNext()) {
+            String word = mData.getString(DroidTermsExampleContract.COLUMN_INDEX_WORD);
+            String definition = mData.getString(DroidTermsExampleContract.COLUMN_INDEX_DEFINITION);
+            mWordView.setText(word);
+            mDefinitionView.setText("");
+        }
+
+    }
+
+    /**
+     * Called when a previously created loader is being reset, and thus
+     * making its data unavailable.  The application should at this point
+     * remove any references it has to the Loader's data.
+     *
+     * @param loader The Loader that is being reset.
+     */
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 
     // Use an async task to do the data fetch off of the main thread.
@@ -138,6 +252,13 @@ public class MainActivity extends AppCompatActivity {
 
             // TODO (2) Initialize anything that you need the cursor for, such as setting up
             // the screen with the first word and setting any other instance variables
+            if(mData.moveToNext()) {
+            String word = mData.getString(DroidTermsExampleContract.COLUMN_INDEX_WORD);
+            String definition = mData.getString(DroidTermsExampleContract.COLUMN_INDEX_DEFINITION);
+            mWordView.setText(word);
+            mDefinitionView.setText(definition);
+        }
+
         }
     }
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <CheckBoxPreference
         android:defaultValue="@bool/pref_show_bass_default"
@@ -23,7 +24,15 @@
         android:summaryOn="@string/pref_show_true"
         android:title="@string/pref_show_treble_label" />
 
-    <!-- TODO (1) Add and EditTextPreference with all of the appropriate strings stored in strings.xml.
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_size_default"
+        android:key="@string/pref_size_key"
+        android:title="@string/pref_size_label"
+        />
+
+
+    <!-- COMPLETED (1) Add and EditTextPreference with all of the appropriate strings stored in strings.xml.
         It should have a key, default value of 1 and title -->
 
     <ListPreference
@@ -32,5 +41,13 @@
         android:entryValues="@array/pref_color_option_values"
         android:key="@string/pref_color_key"
         android:title="@string/pref_color_label" />
+
+    <!--<EditTextPreference-->
+        <!--android:defaultValue="1"-->
+        <!--android:inputType="numberDecimal"-->
+        <!--android:title="Min Size Scale"-->
+        <!--android:key="MinSizeScale"-->
+
+        <!--/>-->
 
 </PreferenceScreen>

@@ -28,7 +28,7 @@ import android.support.v7.preference.PreferenceScreen;
 import android.widget.Toast;
 
 // TODO (1) Implement OnSharedPreferenceChangeListener
-public class SettingsFragment extends PreferenceFragmentCompat {
+public class SettingsFragment extends PreferenceFragmentCompat implements OnSharedPreferenceChangeListener{
 
     @Override
     public void onCreatePreferences(Bundle bundle, String s) {
@@ -39,6 +39,41 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         // TODO (3) Get the preference screen, get the number of preferences and iterate through
         // all of the preferences if it is not a checkbox preference, call the setSummary method
         // passing in a preference and the value of the preference
+        SharedPreferences sharedPreferences = getPreferenceScreen().getSharedPreferences();
+        int preferenceCount = getPreferenceScreen().getPreferenceCount();
+        for(int i = 0; i<preferenceCount;++i)
+        {
+            Preference preference = getPreferenceScreen().getPreference(i);
+            if(!(preference instanceof CheckBoxPreference))
+            {
+                String string = sharedPreferences.getString(preference.getKey(), "");
+                setPreferenceSummary(preference,string);
+            }
+        }
+
+    }
+
+    /**
+     * Called when a shared preference is changed, added, or removed. This
+     * may be called even if a preference is set to its existing value.
+     * <p>
+     * <p>This callback will be run on your main thread.
+     *
+     * @param sharedPreferences The {@link SharedPreferences} that received
+     *                          the change.
+     * @param key               The key of the preference that was changed, added, or
+     */
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+//        if(key.equals(R.string.pref_color_key))
+//        {
+//
+//        }
+        Preference preference = findPreference(key);
+        if(!(preference instanceof CheckBoxPreference))
+        {
+            setPreferenceSummary(preference,sharedPreferences.getString(key,""));
+        }
     }
 
     // TODO (4) Override onSharedPreferenceChanged and, if it is not a checkbox preference,
@@ -49,9 +84,32 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     // associated with the value. You can do this by using the findIndexOfValue and getEntries methods
     // of Preference.
 
+    void setPreferenceSummary(Preference sharedPreferences, String value)
+    {
+        if(sharedPreferences instanceof ListPreference)
+        {
+            ListPreference listPreference  =  (ListPreference) sharedPreferences;
+            int index = listPreference.findIndexOfValue(value);
+            if(index >= 0)
+            {
+                listPreference.setSummary(listPreference.getEntries()[index]);
+            }
+        }
+    }
+
     // TODO (5) Register and unregister the OnSharedPreferenceChange listener (this class) in
     // onCreate and onDestroy respectively.
 
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+    }
 
+    @Override
+    public void onDestroy() {
+        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        super.onDestroy();
+    }
 }

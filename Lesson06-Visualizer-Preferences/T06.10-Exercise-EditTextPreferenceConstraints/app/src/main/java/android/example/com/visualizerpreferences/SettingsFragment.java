@@ -29,7 +29,7 @@ import android.widget.Toast;
 
 // TODO (1) Implement OnPreferenceChangeListener
 public class SettingsFragment extends PreferenceFragmentCompat implements
-        OnSharedPreferenceChangeListener {
+        OnSharedPreferenceChangeListener, Preference.OnPreferenceChangeListener {
 
     @Override
     public void onCreatePreferences(Bundle bundle, String s) {
@@ -51,6 +51,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
                 setPreferenceSummary(p, value);
             }
         }
+
+        Preference preference = findPreference(getString(R.string.pref_size_key));
+        preference.setOnPreferenceChangeListener(this);
         // TODO (3) Add the OnPreferenceChangeListener specifically to the EditTextPreference
     }
 
@@ -98,6 +101,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         super.onCreate(savedInstanceState);
         getPreferenceScreen().getSharedPreferences()
                 .registerOnSharedPreferenceChangeListener(this);
+
     }
 
     @Override
@@ -105,5 +109,37 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         super.onDestroy();
         getPreferenceScreen().getSharedPreferences()
                 .unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    /**
+     * Called when a Preference has been changed by the user. This is
+     * called before the state of the Preference is about to be updated and
+     * before the state is persisted.
+     *
+     * @param preference The changed Preference.
+     * @param newValue   The new value of the Preference.
+     * @return True to update the state of the Preference with the new value.
+     */
+    @Override
+    public boolean onPreferenceChange(Preference preference, Object newValue) {
+        Toast toast = Toast.makeText(getContext(), "Please select a number between 0.1 and 3", Toast.LENGTH_SHORT);
+        if(preference.getKey().equals(getString(R.string.pref_size_key)))
+        {
+            try
+            {
+                String value = (String) newValue;
+                float v = Float.parseFloat(value);
+                if(v > 0.0 & v <= 3.0)
+                    return true;
+                toast.show();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                toast.show();
+                return false;
+            }
+        }
+        return false;
     }
 }
